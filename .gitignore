@@ -1,0 +1,34 @@
+node_modules
+# Keep environment variables out of version control
+.env
+client_secret_855950020031-io57du6qg48u27qa75gdrgh6l55sg5c9.apps.googleusercontent.com.json
+
+/src/generated/prisma
+
+connecta-backend/
+├── src/
+│   ├── config/
+│   ├── core/
+│   │   ├── database/
+│   │   ├── middleware/
+│   │   ├── utils/
+│   │   ├── constants/
+│   │   ├── errors/
+│   │   └── interfaces/
+│   ├── modules/
+│   │   ├── auth/
+│   │   ├── users/
+│   │   └── gigs/
+│   ├── routes/
+│   ├── types/
+│   ├── app.ts
+│   └── server.ts
+├── prisma/
+├── scripts/
+├── tests/
+├── .env
+├── .env.example
+├── tsconfig.json
+├── package.json
+├── nodemon.json
+└── README.md
