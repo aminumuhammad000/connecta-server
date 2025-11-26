@@ -15,13 +15,13 @@ export const getUsers = async (req: Request, res: Response) => {
 
     const query: any = {};
 
-    // Handle userType filter
-    if (userType && userType !== 'all') {
-      // If a specific userType is requested, use it
-      query.userType = userType;
-    } else if (includeAdmins !== 'true') {
-      // Otherwise, exclude admins by default
+    // Exclude admins by default unless explicitly requested
+    if (includeAdmins !== 'true') {
       query.userType = { $ne: 'admin' };
+    }
+
+    if (userType && userType !== 'all') {
+      query.userType = userType;
     }
 
     if (skills) {

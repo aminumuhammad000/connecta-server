@@ -266,6 +266,10 @@ class ConnectaAgent {
     async process(input) {
         const startTime = Date.now();
         this.sessionMetrics.totalRequests++;
+        // Mock Mode Bypass
+        if (this.config.mockMode) {
+            return this.createResponse(`[MOCK] I received your message: "${input}". Since I am in mock mode, I cannot process complex requests, but I am connected!`, { originalInput: input }, true, startTime);
+        }
         try {
             // Ensure fresh context
             await this.ensureContextFreshness();

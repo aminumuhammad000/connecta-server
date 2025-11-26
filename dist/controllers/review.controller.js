@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateReview = exports.flagReview = exports.voteReview = exports.respondToReview = exports.getUserReviewStats = exports.getUserReviews = exports.createReview = void 0;
+exports.getAllReviews = exports.updateReview = exports.flagReview = exports.voteReview = exports.respondToReview = exports.getUserReviewStats = exports.getUserReviews = exports.createReview = void 0;
 const Review_model_1 = __importDefault(require("../models/Review.model"));
 const Project_model_1 = __importDefault(require("../models/Project.model"));
 const user_model_1 = __importDefault(require("../models/user.model"));
@@ -359,3 +359,28 @@ async function updateUserAverageRating(userId) {
         console.error('Update average rating error:', error);
     }
 }
+/**
+ * Get all reviews for admin (no auth required)
+ */
+const getAllReviews = async (req, res) => {
+    try {
+        const reviews = await Review_model_1.default.find()
+            .populate('reviewerId', 'firstName lastName email profileImage')
+            .populate('revieweeId', 'firstName lastName email profileImage')
+            .populate('projectId', 'title description')
+            .sort({ createdAt: -1 });
+        return res.status(200).json({
+            success: true,
+            data: reviews,
+            count: reviews.length,
+        });
+    }
+    catch (error) {
+        console.error('Get all reviews error:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to fetch reviews',
+        });
+    }
+};
+exports.getAllReviews = getAllReviews;

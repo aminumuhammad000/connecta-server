@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.verifyOTP = exports.forgotPassword = exports.googleSignin = exports.googleSignup = exports.signin = exports.signup = exports.getUserById = exports.getUsers = void 0;
+exports.unbanUser = exports.banUser = exports.resetPassword = exports.verifyOTP = exports.forgotPassword = exports.googleSignin = exports.googleSignup = exports.signin = exports.signup = exports.getUserById = exports.getUsers = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const google_auth_library_1 = require("google-auth-library");
@@ -47,17 +47,24 @@ const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_
 // ===================
 const getUsers = async (req, res) => {
     try {
-        const { userType, skills, limit = 50 } = req.query;
+        const { userType, skills, limit = 50, includeAdmins = 'false' } = req.query;
         const query = {};
-        if (userType) {
+        // Handle userType filter
+        if (userType && userType !== 'all') {
+            // If a specific userType is requested, use it
             query.userType = userType;
+        }
+        else if (includeAdmins !== 'true') {
+            // Otherwise, exclude admins by default
+            query.userType = { $ne: 'admin' };
         }
         if (skills) {
             query.skills = { $in: [skills] };
         }
         const users = await user_model_1.default.find(query)
             .select('-password') // Exclude password
-            .limit(parseInt(limit));
+            .limit(parseInt(limit))
+            .sort({ createdAt: -1 });
         res.status(200).json({
             success: true,
             count: users.length,
@@ -142,7 +149,7 @@ const signin = async (req, res) => {
         if (!isMatch)
             return res.status(401).json({ message: "Invalid credentials" });
         const token = jsonwebtoken_1.default.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-        res.status(200).json({ user, token });
+        res.status(200).json({ success: true, user, token });
     }
     catch (err) {
         res.status(500).json({ message: "Server error", error: err });
@@ -199,7 +206,7 @@ const googleSignin = async (req, res) => {
         if (!user)
             return res.status(404).json({ message: "User not found, please sign up first" });
         const token = jsonwebtoken_1.default.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-        res.status(200).json({ user, token });
+        res.status(200).json({ success: true, user, token });
     }
     catch (err) {
         res.status(500).json({ message: "Server error", error: err });
@@ -394,3 +401,65 @@ const resetPassword = async (req, res) => {
     }
 };
 exports.resetPassword = resetPassword;
+// ===================
+// Ban User
+// ===================
+const banUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await user_model_1.default.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        user.isActive = false;
+        await user.save();
+        res.status(200).json({
+            success: true,
+            message: "User banned successfully",
+            data: user
+        });
+    }
+    catch (err) {
+        console.error('Ban user error:', err);
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: err
+        });
+    }
+};
+exports.banUser = banUser;
+// ===================
+// Unban User
+// ===================
+const unbanUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await user_model_1.default.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        user.isActive = true;
+        await user.save();
+        res.status(200).json({
+            success: true,
+            message: "User unbanned successfully",
+            data: user
+        });
+    }
+    catch (err) {
+        console.error('Unban user error:', err);
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: err
+        });
+    }
+};
+exports.unbanUser = unbanUser;

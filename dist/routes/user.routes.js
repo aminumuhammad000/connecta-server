@@ -18,4 +18,7 @@ router.post("/reset-password", user_controller_1.resetPassword);
 // User data routes
 router.get("/", user_controller_1.getUsers); // GET /api/users?userType=freelancer&skills=React&limit=20
 router.get("/:id", user_controller_1.getUserById); // GET /api/users/:id
+// User management routes
+router.put("/:id/ban", user_controller_1.banUser); // PUT /api/users/:id/ban
+router.put("/:id/unban", user_controller_1.unbanUser); // PUT /api/users/:id/unban
 exports.default = router;

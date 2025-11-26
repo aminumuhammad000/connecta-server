@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.notifyReviewReceived = exports.notifyPaymentReceived = exports.notifyProposalAccepted = exports.notifyProposalReceived = exports.createNotification = exports.clearReadNotifications = exports.deleteNotification = exports.markAllAsRead = exports.markAsRead = exports.getUnreadCount = exports.getNotifications = void 0;
+exports.getAllNotifications = exports.notifyReviewReceived = exports.notifyPaymentReceived = exports.notifyProposalAccepted = exports.notifyProposalReceived = exports.createNotification = exports.clearReadNotifications = exports.deleteNotification = exports.markAllAsRead = exports.markAsRead = exports.getUnreadCount = exports.getNotifications = void 0;
 const Notification_model_1 = __importDefault(require("../models/Notification.model"));
 const socketIO_1 = require("../core/utils/socketIO");
 /**
@@ -263,3 +263,27 @@ const notifyReviewReceived = async (userId, reviewerName, rating, projectTitle) 
     });
 };
 exports.notifyReviewReceived = notifyReviewReceived;
+/**
+ * Get all notifications for admin (no auth required)
+ */
+const getAllNotifications = async (req, res) => {
+    try {
+        const notifications = await Notification_model_1.default.find()
+            .populate('userId', 'firstName lastName email profileImage')
+            .sort({ createdAt: -1 })
+            .limit(100);
+        return res.status(200).json({
+            success: true,
+            data: notifications,
+            count: notifications.length,
+        });
+    }
+    catch (error) {
+        console.error('Get all notifications error:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to fetch notifications',
+        });
+    }
+};
+exports.getAllNotifications = getAllNotifications;

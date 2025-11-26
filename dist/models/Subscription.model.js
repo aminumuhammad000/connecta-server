@@ -33,28 +33,54 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-// src/models/User.model.ts
 const mongoose_1 = __importStar(require("mongoose"));
-const UserSchema = new mongoose_1.Schema({
-    userType: {
-        type: String,
-        enum: ["admin", "freelancer", "employer", "client"],
+const SubscriptionSchema = new mongoose_1.Schema({
+    userId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User',
         required: true,
-        isPremium: {
-            type: Boolean,
-            default: false,
-        },
-        premiumExpiryDate: {
-            type: Date,
-        },
-        default: "freelancer",
     },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    profileImage: { type: String, required: false },
-    isActive: { type: Boolean, default: true },
-}, { timestamps: true });
-const User = mongoose_1.default.model("User", UserSchema);
-exports.default = User;
+    plan: {
+        type: String,
+        enum: ['free', 'premium'],
+        default: 'free',
+        required: true,
+    },
+    amount: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
+    currency: {
+        type: String,
+        default: 'NGN',
+    },
+    status: {
+        type: String,
+        enum: ['active', 'expired', 'cancelled'],
+        default: 'active',
+    },
+    startDate: {
+        type: Date,
+        required: true,
+        default: Date.now,
+    },
+    endDate: {
+        type: Date,
+        required: true,
+    },
+    paymentReference: {
+        type: String,
+    },
+    autoRenew: {
+        type: Boolean,
+        default: false,
+    },
+}, {
+    timestamps: true,
+});
+// Index for faster queries
+SubscriptionSchema.index({ userId: 1, status: 1 });
+SubscriptionSchema.index({ endDate: 1 });
+const Subscription = mongoose_1.default.model('Subscription', SubscriptionSchema);
+exports.default = Subscription;

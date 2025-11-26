@@ -20,6 +20,12 @@ const Message_routes_1 = __importDefault(require("./routes/Message.routes"));
 const Proposal_routes_1 = __importDefault(require("./routes/Proposal.routes"));
 const Dashboard_routes_1 = __importDefault(require("./routes/Dashboard.routes"));
 const upload_routes_1 = __importDefault(require("./routes/upload.routes"));
+const contract_routes_1 = __importDefault(require("./routes/contract.routes"));
+const payment_routes_1 = __importDefault(require("./routes/payment.routes"));
+const review_routes_1 = __importDefault(require("./routes/review.routes"));
+const gigs_routes_1 = __importDefault(require("./routes/gigs.routes"));
+const notification_routes_1 = __importDefault(require("./routes/notification.routes"));
+const insights_routes_1 = __importDefault(require("./routes/insights.routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
@@ -29,7 +35,7 @@ const server = http_1.default.createServer(app);
 const socketIO_1 = require("./core/utils/socketIO");
 const io = new socket_io_1.Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: ["http://localhost:5173", "http://localhost:8081", "http://localhost:19000", "http://localhost:19001", "*"],
         methods: ["GET", "POST"],
         credentials: true,
     },
@@ -37,7 +43,7 @@ const io = new socket_io_1.Server(server, {
 (0, socketIO_1.setIO)(io);
 // Middleware
 app.use((0, cors_1.default)({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:8081", "http://localhost:19000", "http://localhost:19001", "*"],
     credentials: true
 }));
 app.use(express_1.default.json());
@@ -53,6 +59,16 @@ app.use("/api/proposals", Proposal_routes_1.default);
 app.use("/api/dashboard", Dashboard_routes_1.default);
 app.use("/api/uploads", upload_routes_1.default);
 app.use("/api/agent", agentRoute_1.default);
+app.use("/api/contracts", contract_routes_1.default);
+app.use("/api/payments", payment_routes_1.default);
+app.use("/api/reviews", review_routes_1.default);
+app.use("/api/gigs", gigs_routes_1.default);
+app.use("/api/notifications", notification_routes_1.default);
+const analytics_routes_1 = __importDefault(require("./routes/analytics.routes"));
+app.use("/api/analytics", analytics_routes_1.default);
+const subscription_routes_1 = __importDefault(require("./routes/subscription.routes"));
+app.use("/api/subscriptions", subscription_routes_1.default);
+app.use("/api/analytics", insights_routes_1.default);
 app.get("/", (req, res) => {
     res.send("✅ Connecta backend is running!");
 });

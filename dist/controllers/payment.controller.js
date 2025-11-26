@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveAccount = exports.getBanks = exports.getTransactionHistory = exports.processWithdrawal = exports.requestWithdrawal = exports.getWalletBalance = exports.getPaymentHistory = exports.refundPayment = exports.releasePayment = exports.verifyPayment = exports.initializePayment = exports.initializeJobVerification = void 0;
+exports.getAllPayments = exports.resolveAccount = exports.getBanks = exports.getTransactionHistory = exports.processWithdrawal = exports.requestWithdrawal = exports.getWalletBalance = exports.getPaymentHistory = exports.refundPayment = exports.releasePayment = exports.verifyPayment = exports.initializePayment = exports.initializeJobVerification = void 0;
 const Payment_model_1 = __importDefault(require("../models/Payment.model"));
 const Transaction_model_1 = __importDefault(require("../models/Transaction.model"));
 const Wallet_model_1 = __importDefault(require("../models/Wallet.model"));
@@ -718,3 +718,43 @@ const resolveAccount = async (req, res) => {
     }
 };
 exports.resolveAccount = resolveAccount;
+/**
+ * Get all payments (Admin only)
+ */
+const getAllPayments = async (req, res) => {
+    try {
+        const { status, page = 1, limit = 100 } = req.query;
+        const query = {};
+        if (status) {
+            query.status = status;
+        }
+        const payments = await Payment_model_1.default.find(query)
+            .sort({ createdAt: -1 })
+            .limit(Number(limit))
+            .skip((Number(page) - 1) * Number(limit))
+            .populate('payerId', 'firstName lastName email profileImage')
+            .populate('payeeId', 'firstName lastName email profileImage')
+            .populate('projectId', 'title description');
+        const total = await Payment_model_1.default.countDocuments(query);
+        return res.status(200).json({
+            success: true,
+            data: payments,
+            count: payments.length,
+            total,
+            pagination: {
+                page: Number(page),
+                limit: Number(limit),
+                total,
+                pages: Math.ceil(total / Number(limit)),
+            },
+        });
+    }
+    catch (error) {
+        console.error('Get all payments error:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to fetch payments',
+        });
+    }
+};
+exports.getAllPayments = getAllPayments;

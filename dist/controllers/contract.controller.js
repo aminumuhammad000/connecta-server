@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getContractTemplate = exports.terminateContract = exports.signContract = exports.getUserContracts = exports.getContractById = exports.createContract = void 0;
+exports.getAllContracts = exports.getContractTemplate = exports.terminateContract = exports.signContract = exports.getUserContracts = exports.getContractById = exports.createContract = void 0;
 const Contract_model_1 = __importDefault(require("../models/Contract.model"));
 const Project_model_1 = __importDefault(require("../models/Project.model"));
 const notification_controller_1 = require("./notification.controller");
@@ -436,3 +436,43 @@ const getContractTemplate = async (req, res) => {
     }
 };
 exports.getContractTemplate = getContractTemplate;
+/**
+ * Get all contracts (Admin only)
+ */
+const getAllContracts = async (req, res) => {
+    try {
+        const { status, page = 1, limit = 100 } = req.query;
+        const query = {};
+        if (status) {
+            query.status = status;
+        }
+        const contracts = await Contract_model_1.default.find(query)
+            .sort({ createdAt: -1 })
+            .limit(Number(limit))
+            .skip((Number(page) - 1) * Number(limit))
+            .populate('clientId', 'firstName lastName email')
+            .populate('freelancerId', 'firstName lastName email')
+            .populate('projectId', 'title description');
+        const total = await Contract_model_1.default.countDocuments(query);
+        return res.status(200).json({
+            success: true,
+            data: contracts,
+            count: contracts.length,
+            total,
+            pagination: {
+                page: Number(page),
+                limit: Number(limit),
+                total,
+                pages: Math.ceil(total / Number(limit)),
+            },
+        });
+    }
+    catch (error) {
+        console.error('Get all contracts error:', error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to fetch contracts',
+        });
+    }
+};
+exports.getAllContracts = getAllContracts;

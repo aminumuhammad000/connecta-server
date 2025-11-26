@@ -7,6 +7,8 @@ const express_1 = __importDefault(require("express"));
 const contract_controller_1 = require("../controllers/contract.controller");
 const auth_middleware_1 = require("../core/middleware/auth.middleware");
 const router = express_1.default.Router();
+// Admin route - Get all contracts (no auth)
+router.get('/admin/all', contract_controller_1.getAllContracts);
 // Create contract (protected - client only)
 router.post('/', auth_middleware_1.authenticate, contract_controller_1.createContract);
 // Get user's contracts (protected)
